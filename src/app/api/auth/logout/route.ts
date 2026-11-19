@@ -1,0 +1,12 @@
+import { NextResponse } from "next/server";
+import { clearSession, getSession } from "@/lib/auth";
+import { writeAudit } from "@/lib/audit";
+
+export async function POST() {
+  const session = await getSession();
+  await clearSession();
+  if (session) {
+    await writeAudit({ adminId: session.id, action: "LOGOUT" });
+  }
+  return NextResponse.json({ ok: true });
+}

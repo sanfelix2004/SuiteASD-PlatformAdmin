@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// Platform operator who can open the back-office.
+model PlatformAdmin {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  auditLogs    AuditLog[]
+}
+
+/// A sports club registered on SuiteASD (platform-level view, not tenant DB rows).
+model SocietyAccount {
+  id                 String   @id @default(cuid())
+  name               String
+  slug               String   @unique
+  sport              String   @default("VOLLEY")
+  email              String?
+  phone              String?
+  city               String?
+  fiscalCode         String?
+  status             String   @default("ACTIVE") // ACTIVE | SUSPENDED | PENDING | CHURNED
+  billingPlan        String   @default("PILOTA") // PILOTA | SQUADRA | SOCIETA
+  billingExempt      Boolean  @default(true)
+  billingExemptReason String?
+  billingExemptUntil DateTime?
+  annualFeeCents     Int      @default(0)
+  membersCount       Int      @default(0)
+  teamsCount         Int      @default(0)
+  lastActiveAt       DateTime?
+  onboardedAt        DateTime @default(now())
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  metrics      MetricSnapshot[]
+  fieldAccess  SocietyFieldAccess[]
+  auditLogs    AuditLog[]
+  societyNotes SocietyNote[]
+}
+
+/// Which platform fields are visible for a society (GDPR / ops policy).
+model SocietyFieldAccess {
+  id        String @id @default(cuid())
+  societyId String
+  society   SocietyAccount @relation(fields: [societyId], references: [id], onDelete: Cascade)
+  /// CONTACT | FISCAL | USAGE_STATS | MEMBERS_PII | MEDICAL | MINORS | PAYMENTS | DOCUMENTS
+  fieldGroup String
+  canView    Boolean @default(false)
+  canEdit    Boolean @default(false)
+
+  @@unique([societyId, fieldGroup])
+}
+
+model MetricSnapshot {
+  id             String   @id @default(cuid())
+  societyId      String
+  society        SocietyAccount @relation(fields: [societyId], references: [id], onDelete: Cascade)
+  capturedAt     DateTime @default(now())
+  activeUsers7d  Int      @default(0)
+  logins7d       Int      @default(0)
+  documentsCount Int      @default(0)
+  paymentsCents  Int      @default(0)
+  eventsCount    Int      @default(0)
+}
+
+model SocietyNote {
+  id        String   @id @default(cuid())
+  societyId String
+  society   SocietyAccount @relation(fields: [societyId], references: [id], onDelete: Cascade)
+  authorId  String?
+  body      String
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  adminId   String?
+  admin     PlatformAdmin? @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  societyId String?
+  society   SocietyAccount? @relation(fields: [societyId], references: [id], onDelete: SetNull)
+  action    String
+  detail    String?
+  createdAt DateTime @default(now())
+}
+
+/// Global defaults: what platform staff may see by default for new societies.
+model VisibilityPolicy {
+  id         String  @id @default(cuid())
+  fieldGroup String  @unique
+  labelIt    String
+  descriptionIt String
+  canViewDefault Boolean @default(false)
+  canEditDefault Boolean @default(false)
+  sensitive  Boolean @default(false)
+}

@@ -1,0 +1,68 @@
+export const FIELD_GROUPS = [
+  {
+    key: "CONTACT",
+    labelIt: "Contatti società",
+    descriptionIt: "Email, telefono, città della società.",
+    canViewDefault: true,
+    canEditDefault: true,
+    sensitive: false,
+  },
+  {
+    key: "FISCAL",
+    labelIt: "Dati fiscali",
+    descriptionIt: "Codice fiscale / partita IVA della società.",
+    canViewDefault: true,
+    canEditDefault: false,
+    sensitive: false,
+  },
+  {
+    key: "USAGE_STATS",
+    labelIt: "Metriche d'uso",
+    descriptionIt: "Accessi, eventi, documenti, volumi aggregati.",
+    canViewDefault: true,
+    canEditDefault: false,
+    sensitive: false,
+  },
+  {
+    key: "MEMBERS_PII",
+    labelIt: "Anagrafiche tesserati",
+    descriptionIt: "Nomi, contatti e dati anagrafici dei tesserati.",
+    canViewDefault: false,
+    canEditDefault: false,
+    sensitive: true,
+  },
+  {
+    key: "MEDICAL",
+    labelIt: "Certificati medici",
+    descriptionIt: "Documenti sanitari e scadenze cliniche.",
+    canViewDefault: false,
+    canEditDefault: false,
+    sensitive: true,
+  },
+  {
+    key: "MINORS",
+    labelIt: "Dati di minori",
+    descriptionIt: "Qualsiasi dato relativo a atleti under 18.",
+    canViewDefault: false,
+    canEditDefault: false,
+    sensitive: true,
+  },
+  {
+    key: "PAYMENTS",
+    labelIt: "Pagamenti e quote",
+    descriptionIt: "Importi, ricevute e stato delle quote dei tesserati.",
+    canViewDefault: false,
+    canEditDefault: false,
+    sensitive: true,
+  },
+  {
+    key: "DOCUMENTS",
+    labelIt: "Documenti caricati",
+    descriptionIt: "File allegati (PDF/foto) dei tesserati e della società.",
+    canViewDefault: false,
+    canEditDefault: false,
+    sensitive: true,
+  },
+] as const;
+
+export type FieldGroupKey = (typeof FIELD_GROUPS)[number]["key"];
