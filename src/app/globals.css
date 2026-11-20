@@ -105,6 +105,35 @@ a { color: inherit; text-decoration: none; }
 .rise-delay-2 { animation-delay: .1s; }
 .rise-delay-3 { animation-delay: .15s; }
 
+.profile-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 7rem;
+  height: 7rem;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 2.4rem;
+  font-weight: 700;
+  border: 3px solid transparent;
+  transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+  box-shadow: 0 12px 28px rgba(15, 27, 45, 0.12);
+}
+.profile-avatar:hover {
+  transform: translateY(-4px) scale(1.03);
+  border-color: var(--ink);
+}
+.profile-avatar-add {
+  background: transparent;
+  border: 3px dashed var(--line);
+  color: var(--muted);
+  box-shadow: none;
+}
+.profile-avatar-add:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .rise, .btn { animation: none; transition: none; }
+  .rise, .btn, .profile-avatar { animation: none; transition: none; }
 }

@@ -1,14 +1,10 @@
 import { NextResponse } from "next/server";
-import { isAdminConfigured } from "@/lib/bootstrap";
 
+/** Kept for compatibility; registration is always open. */
 export async function GET() {
-  try {
-    const configured = await isAdminConfigured();
-    return NextResponse.json({
-      configured,
-      needsSetup: !configured,
-    });
-  } catch {
-    return NextResponse.json({ configured: false, needsSetup: true });
-  }
+  return NextResponse.json({
+    configured: true,
+    needsSetup: false,
+    registrationOpen: true,
+  });
 }

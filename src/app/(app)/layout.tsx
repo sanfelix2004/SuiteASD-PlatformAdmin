@@ -7,5 +7,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   await ensureBootstrapped();
   const session = await getSession();
   if (!session) redirect("/login");
-  return <AppShell adminName={session.name}>{children}</AppShell>;
+  if (!session.profileId) redirect("/profiles");
+  return (
+    <AppShell
+      adminName={session.name}
+      profileName={session.profileName ?? "Profilo"}
+    >
+      {children}
+    </AppShell>
+  );
 }

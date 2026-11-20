@@ -170,6 +170,15 @@ export async function loadSuiteAsdSocieties(): Promise<SuiteAsdSourceInfo> {
   };
 }
 
+export async function syncFromSuiteAsdSafe(adminId?: string | null) {
+  try {
+    return await syncFromSuiteAsd(adminId);
+  } catch (error) {
+    console.warn("SuiteASD sync skipped", error);
+    return null;
+  }
+}
+
 export async function syncFromSuiteAsd(adminId?: string | null) {
   const source = await loadSuiteAsdSocieties();
   let upserted = 0;

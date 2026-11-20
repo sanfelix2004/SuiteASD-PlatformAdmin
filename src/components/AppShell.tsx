@@ -12,9 +12,11 @@ const links = [
 
 export function AppShell({
   adminName,
+  profileName,
   children,
 }: {
   adminName: string;
+  profileName: string;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -37,7 +39,7 @@ export function AppShell({
             Platform Admin
           </h1>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            Back-office società iscritte · {adminName}
+            Profilo <strong>{profileName}</strong> · account {adminName}
           </p>
         </div>
         <nav className="flex flex-wrap items-center gap-2">
@@ -53,6 +55,9 @@ export function AppShell({
               </Link>
             );
           })}
+          <Link href="/profiles" className="btn btn-ghost">
+            Cambia profilo
+          </Link>
           <button type="button" className="btn btn-ghost" onClick={logout}>
             Esci
           </button>

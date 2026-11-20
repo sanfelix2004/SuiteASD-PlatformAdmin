@@ -3,5 +3,7 @@ import { getSession } from "@/lib/auth";
 
 export default async function Home() {
   const session = await getSession();
-  redirect(session ? "/dashboard" : "/login");
+  if (!session) redirect("/login");
+  if (!session.profileId) redirect("/profiles");
+  redirect("/dashboard");
 }

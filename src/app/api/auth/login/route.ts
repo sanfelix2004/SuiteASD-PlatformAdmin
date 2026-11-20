@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSession, verifyPassword } from "@/lib/auth";
-import { ensureBootstrapped, isAdminConfigured } from "@/lib/bootstrap";
+import { ensureBootstrapped } from "@/lib/bootstrap";
 import { assertSameOrigin } from "@/lib/csrf";
 import { clientKey, takeRateLimit } from "@/lib/rate-limit";
 import { findAdminByEmail, writeAudit } from "@/lib/store";
@@ -19,22 +19,11 @@ export async function POST(request: Request) {
   if (!limited.ok) {
     return NextResponse.json(
       { error: "Troppi tentativi. Riprova tra poco." },
-      {
-        status: 429,
-        headers: { "Retry-After": String(limited.retryAfterSec) },
-      },
+      { status: 429, headers: { "Retry-After": String(limited.retryAfterSec) } },
     );
   }
 
   await ensureBootstrapped();
-
-  if (!(await isAdminConfigured())) {
-    return NextResponse.json(
-      { error: "Completa prima il setup iniziale." },
-      { status: 503 },
-    );
-  }
-
   const parsed = bodySchema.safeParse(await request.json());
   if (!parsed.success) {
     return NextResponse.json({ error: "Dati non validi" }, { status: 422 });
@@ -45,7 +34,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Credenziali non valide" }, { status: 401 });
   }
 
-  await createSession({ id: admin.id, email: admin.email, name: admin.name });
+  await createSession({
+    id: admin.id,
+    email: admin.email,
+    name: admin.name,
+    profileId: null,
+    profileName: null,
+  });
   await writeAudit({ adminId: admin.id, action: "LOGIN", detail: admin.email });
   return NextResponse.json({ id: admin.id, email: admin.email, name: admin.name });
 }
