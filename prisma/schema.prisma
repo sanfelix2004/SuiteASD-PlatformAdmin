@@ -23,6 +23,9 @@ model SocietyAccount {
   id                 String   @id @default(cuid())
   name               String
   slug               String   @unique
+  externalId         String?  @unique // SuiteASD Society.id
+  source             String   @default("LOCAL") // SUITEASD | LOCAL
+  syncedAt           DateTime?
   sport              String   @default("VOLLEY")
   email              String?
   phone              String?

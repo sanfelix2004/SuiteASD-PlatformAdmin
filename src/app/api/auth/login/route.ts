@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSession, verifyPassword } from "@/lib/auth";
-import { writeAudit } from "@/lib/audit";
-import { prisma } from "@/lib/prisma";
+import { ensureBootstrapped } from "@/lib/bootstrap";
+import { findAdminByEmail, writeAudit } from "@/lib/store";
 
 const bodySchema = z.object({
   email: z.string().email(),
@@ -10,21 +10,16 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: Request) {
+  await ensureBootstrapped();
   const parsed = bodySchema.safeParse(await request.json());
   if (!parsed.success) {
     return NextResponse.json({ error: "Dati non validi" }, { status: 422 });
   }
-  const admin = await prisma.platformAdmin.findUnique({
-    where: { email: parsed.data.email.toLowerCase() },
-  });
-  if (!admin || !(await verifyPassword(parsed.data.password, admin.passwordHash))) {
+  const admin = await findAdminByEmail(parsed.data.email);
+  if (!admin || !(await verifyPassword(parsed.data.password, admin.password_hash))) {
     return NextResponse.json({ error: "Credenziali non valide" }, { status: 401 });
   }
   await createSession({ id: admin.id, email: admin.email, name: admin.name });
-  await writeAudit({
-    adminId: admin.id,
-    action: "LOGIN",
-    detail: admin.email,
-  });
+  await writeAudit({ adminId: admin.id, action: "LOGIN", detail: admin.email });
   return NextResponse.json({ id: admin.id, email: admin.email, name: admin.name });
 }

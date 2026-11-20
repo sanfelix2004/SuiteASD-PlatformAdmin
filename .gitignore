@@ -47,3 +47,6 @@ prisma/dev.db
 prisma/dev.db-journal
 *.db
 !.env.example
+
+data/suiteasd-source.db
+data/*.db

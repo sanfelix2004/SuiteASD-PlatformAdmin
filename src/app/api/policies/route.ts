@@ -1,15 +1,24 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/auth";
-import { writeAudit } from "@/lib/audit";
 import { FIELD_GROUPS } from "@/lib/fields";
-import { prisma } from "@/lib/prisma";
+import { listPolicies, updatePolicy, writeAudit } from "@/lib/store";
 
 export async function GET() {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Non autenticato" }, { status: 401 });
-  const policies = await prisma.visibilityPolicy.findMany({ orderBy: { fieldGroup: "asc" } });
-  return NextResponse.json({ data: policies });
+  const policies = await listPolicies();
+  return NextResponse.json({
+    data: policies.map((policy) => ({
+      id: policy.id,
+      fieldGroup: policy.field_group,
+      labelIt: policy.label_it,
+      descriptionIt: policy.description_it,
+      canViewDefault: Boolean(policy.can_view_default),
+      canEditDefault: Boolean(policy.can_edit_default),
+      sensitive: Boolean(policy.sensitive),
+    })),
+  });
 }
 
 const patchSchema = z.object({
@@ -22,21 +31,17 @@ export async function PATCH(request: Request) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Non autenticato" }, { status: 401 });
   const parsed = patchSchema.safeParse(await request.json());
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Dati non validi" }, { status: 422 });
-  }
+  if (!parsed.success) return NextResponse.json({ error: "Dati non validi" }, { status: 422 });
   const canEditDefault = parsed.data.canViewDefault ? parsed.data.canEditDefault : false;
-  const policy = await prisma.visibilityPolicy.update({
-    where: { fieldGroup: parsed.data.fieldGroup },
-    data: {
-      canViewDefault: parsed.data.canViewDefault,
-      canEditDefault,
-    },
-  });
+  const policy = await updatePolicy(
+    parsed.data.fieldGroup,
+    parsed.data.canViewDefault,
+    canEditDefault,
+  );
   await writeAudit({
     adminId: session.id,
     action: "POLICY_UPDATE",
-    detail: `${policy.fieldGroup} view=${policy.canViewDefault} edit=${policy.canEditDefault}`,
+    detail: `${parsed.data.fieldGroup} view=${parsed.data.canViewDefault} edit=${canEditDefault}`,
   });
   return NextResponse.json(policy);
 }

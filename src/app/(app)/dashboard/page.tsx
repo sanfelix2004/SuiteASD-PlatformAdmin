@@ -22,8 +22,10 @@ type Dashboard = {
     billingExempt: boolean;
     membersCount: number;
     city: string | null;
+    source?: string;
     updatedAt: string;
   }>;
+  suiteasd: { mode: string; detail: string; count: number };
 };
 
 function euro(cents: number) {
@@ -46,15 +48,32 @@ function statusBadge(status: string) {
 export default function DashboardPage() {
   const [data, setData] = useState<Dashboard | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState<string | null>(null);
+
+  async function load() {
+    const response = await fetch("/api/dashboard");
+    if (!response.ok) throw new Error("Caricamento fallito");
+    setData(await response.json());
+  }
 
   useEffect(() => {
-    fetch("/api/dashboard")
-      .then(async (response) => {
-        if (!response.ok) throw new Error("Caricamento fallito");
-        setData(await response.json());
-      })
-      .catch(() => setError("Impossibile caricare la dashboard"));
+    load().catch(() => setError("Impossibile caricare la dashboard"));
   }, []);
+
+  async function sync() {
+    setSyncing(true);
+    setSyncMsg(null);
+    const response = await fetch("/api/suiteasd/sync", { method: "POST" });
+    const payload = await response.json().catch(() => ({}));
+    setSyncing(false);
+    if (!response.ok) {
+      setSyncMsg(payload.error ?? "Sync fallita");
+      return;
+    }
+    setSyncMsg(`Sync OK · ${payload.mode} · ${payload.upserted} società`);
+    await load();
+  }
 
   if (error) {
     return <p className="panel p-6 text-[var(--danger)]">{error}</p>;
@@ -79,6 +98,27 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <section className="panel rise flex flex-col gap-3 p-5 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h2 className="display text-xl font-semibold">Fonte SuiteASD</h2>
+          <p className="mt-1 text-sm text-[var(--muted)]">
+            {data.suiteasd.mode === "database"
+              ? "Collegata al database di Mikirucci/SuiteASD"
+              : data.suiteasd.mode === "snapshot"
+                ? "Snapshot dal seed della repo SuiteASD"
+                : "Fonte non disponibile"}
+            {" · "}
+            {data.suiteasd.detail}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {syncMsg ? <span className="text-sm text-[var(--mint)]">{syncMsg}</span> : null}
+          <button type="button" className="btn btn-primary" disabled={syncing} onClick={sync}>
+            {syncing ? "Sincronizzo…" : "Sincronizza da SuiteASD"}
+          </button>
+        </div>
+      </section>
+
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((card, index) => (
           <article
@@ -98,7 +138,7 @@ export default function DashboardPage() {
           <div>
             <h2 className="display text-2xl font-semibold">Ultime società</h2>
             <p className="text-sm text-[var(--muted)]">
-              Stato operativo e esenzione billing.
+              Dati societari da SuiteASD + overlay billing piattaforma.
             </p>
           </div>
           <Link href="/societies" className="btn btn-primary">
@@ -110,6 +150,7 @@ export default function DashboardPage() {
             <thead>
               <tr>
                 <th>Società</th>
+                <th>Fonte</th>
                 <th>Stato</th>
                 <th>Billing</th>
                 <th>Tesserati</th>
@@ -124,6 +165,9 @@ export default function DashboardPage() {
                       {row.name}
                     </Link>
                     <div className="text-xs text-[var(--muted)]">{row.slug}</div>
+                  </td>
+                  <td>
+                    <span className="badge badge-exempt">{row.source ?? "LOCAL"}</span>
                   </td>
                   <td>
                     <span className={`badge ${statusBadge(row.status)}`}>{row.status}</span>

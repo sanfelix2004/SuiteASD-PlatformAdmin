@@ -1,0 +1,25 @@
+{
+  "source": "https://github.com/Mikirucci/SuiteASD",
+  "generatedAt": "2026-11-20T08:20:28.885Z",
+  "societies": [
+    {
+      "externalId": "cmwopl4wm0000jscr4qj56uen",
+      "name": "Aquile Volley",
+      "slug": "aquile-volley",
+      "sport": "VOLLEY",
+      "email": "info@aquilevolley.it",
+      "phone": null,
+      "city": "Bologna",
+      "fiscalCode": null,
+      "address": null,
+      "timezone": "Europe/Rome",
+      "membersCount": 118,
+      "teamsCount": 6,
+      "documentsCount": 354,
+      "eventsCount": 37,
+      "paymentsCents": 714000,
+      "createdAt": "2026-11-20T08:20:09.622Z",
+      "updatedAt": "2026-11-20T08:20:09.622Z"
+    }
+  ]
+}

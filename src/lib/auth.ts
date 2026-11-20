@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
-import { prisma } from "./prisma";
+import { findAdminById } from "./store";
 
 const COOKIE = "spa_session";
 
@@ -56,18 +56,10 @@ export async function getSession(): Promise<SessionAdmin | null> {
   try {
     const { payload } = await jwtVerify(token, secret());
     if (!payload.sub || typeof payload.email !== "string") return null;
-    const admin = await prisma.platformAdmin.findUnique({
-      where: { id: payload.sub },
-    });
+    const admin = await findAdminById(payload.sub);
     if (!admin) return null;
     return { id: admin.id, email: admin.email, name: admin.name };
   } catch {
     return null;
   }
-}
-
-export async function requireSession() {
-  const session = await getSession();
-  if (!session) throw new Response(JSON.stringify({ error: "Non autenticato" }), { status: 401 });
-  return session;
 }
