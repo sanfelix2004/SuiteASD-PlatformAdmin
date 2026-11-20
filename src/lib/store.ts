@@ -71,6 +71,22 @@ export async function countAdmins() {
   return Number(rows[0]?.count ?? 0);
 }
 
+export async function getSetting(key: string) {
+  const rows = await sql<{ value: string }>(
+    `select value from app_settings where key = $1 limit 1`,
+    [key],
+  );
+  return rows[0]?.value ?? null;
+}
+
+export async function setSetting(key: string, value: string) {
+  await sql(
+    `insert into app_settings (key, value, updated_at) values ($1, $2, NOW())
+     on conflict (key) do update set value = excluded.value, updated_at = NOW()`,
+    [key, value],
+  );
+}
+
 export async function findAdminByEmail(email: string) {
   const rows = await sql<AdminRow>(
     `select id, email, password_hash, name from platform_admin where email = $1 limit 1`,

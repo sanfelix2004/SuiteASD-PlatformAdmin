@@ -26,21 +26,11 @@ export async function POST(request: Request) {
     );
   }
 
-  try {
-    await ensureBootstrapped();
-  } catch {
-    return NextResponse.json(
-      { error: "Configurazione AUTH_SECRET mancante o non valida" },
-      { status: 503 },
-    );
-  }
+  await ensureBootstrapped();
 
   if (!(await isAdminConfigured())) {
     return NextResponse.json(
-      {
-        error:
-          "Nessun operatore configurato. Imposta PLATFORM_BOOTSTRAP_PASSWORD (e AUTH_SECRET) nei secret dell'app.",
-      },
+      { error: "Completa prima il setup iniziale." },
       { status: 503 },
     );
   }
@@ -55,15 +45,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Credenziali non valide" }, { status: 401 });
   }
 
-  try {
-    await createSession({ id: admin.id, email: admin.email, name: admin.name });
-  } catch {
-    return NextResponse.json(
-      { error: "Configurazione AUTH_SECRET mancante o non valida" },
-      { status: 503 },
-    );
-  }
-
+  await createSession({ id: admin.id, email: admin.email, name: admin.name });
   await writeAudit({ adminId: admin.id, action: "LOGIN", detail: admin.email });
   return NextResponse.json({ id: admin.id, email: admin.email, name: admin.name });
 }

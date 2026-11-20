@@ -20,19 +20,15 @@ Next.js 15 · TypeScript · Tailwind · Postgres (Cursor) / PGlite in locale · 
 
 ```bash
 cp .env.example .env
-# Compila AUTH_SECRET (>= 32 caratteri) e PLATFORM_BOOTSTRAP_PASSWORD (>= 12)
 # opzionale: copia il DB seedato di SuiteASD
 # cp ../SuiteASD/apps/api/prisma/dev.db ./data/suiteasd-source.db
 
 npm install
-npm run db:seed
 npm run dev
 ```
 
-Apri `http://127.0.0.1:3847`
-
-Le credenziali dell’operatore non sono nel codice: vengono create da `PLATFORM_BOOTSTRAP_PASSWORD` (seed o primo avvio).
+Apri `http://127.0.0.1:3847` e completa il **setup iniziale** (email + password scelte da te). Nessuna password è nel codice.
 
 ## Deploy
 
-L’app dichiara Postgres con `cursor-app.json`. In hosting, `DATABASE_URL` viene iniettato automaticamente. Imposta i secret `AUTH_SECRET` e `PLATFORM_BOOTSTRAP_PASSWORD` (opzionale `PLATFORM_BOOTSTRAP_EMAIL`, `SUITEASD_DATABASE_URL`).
+L’app dichiara Postgres con `cursor-app.json`. In hosting, `DATABASE_URL` viene iniettato automaticamente. Opzionali: `AUTH_SECRET`, `SUITEASD_DATABASE_URL`. Senza secret, la chiave di sessione è generata nel DB e i dati SuiteASD arrivano dallo snapshot.
