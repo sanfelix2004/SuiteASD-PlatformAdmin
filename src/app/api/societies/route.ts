@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/auth";
 import { createSociety, listSocieties, writeAudit } from "@/lib/store";
+import { assertSameOrigin } from "@/lib/csrf";
 
 const createSchema = z.object({
   name: z.string().trim().min(2).max(120),
@@ -32,6 +33,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const csrf = assertSameOrigin(request);
+  if (csrf) return csrf;
+
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Non autenticato" }, { status: 401 });
   const parsed = createSchema.safeParse(await request.json());

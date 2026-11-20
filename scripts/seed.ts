@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
 import {
   deleteUnlinkedLocalSocieties,
@@ -8,20 +9,37 @@ import {
 import { syncFromSuiteAsd } from "../src/lib/suiteasd";
 
 async function main() {
-  process.env.AUTH_SECRET ||=
-    "suiteasd-platform-admin-local-dev-secret-change-me-32";
+  const authSecret = process.env.AUTH_SECRET?.trim();
+  if (!authSecret || authSecret.length < 32) {
+    throw new Error("Set AUTH_SECRET (>= 32 chars) before seeding");
+  }
+
+  const email = (
+    process.env.PLATFORM_BOOTSTRAP_EMAIL?.trim() || "admin@suiteasd.platform"
+  ).toLowerCase();
+  const password =
+    process.env.PLATFORM_BOOTSTRAP_PASSWORD?.trim() ||
+    randomBytes(18).toString("base64url");
+
+  if (!process.env.PLATFORM_BOOTSTRAP_PASSWORD?.trim()) {
+    console.log(
+      "PLATFORM_BOOTSTRAP_PASSWORD was not set; generated a one-time local password (shown once below).",
+    );
+  }
+
   await ensurePolicies();
-  const passwordHash = await bcrypt.hash("AdminSuiteASD2026!", 12);
+  const passwordHash = await bcrypt.hash(password, 12);
   const adminId = await upsertAdmin({
-    email: "admin@suiteasd.platform",
+    email,
     name: "Operatore piattaforma",
     passwordHash,
   });
   await deleteUnlinkedLocalSocieties();
   const sync = await syncFromSuiteAsd(adminId);
-  await writeAudit({ adminId, action: "SEED", detail: "bootstrap" });
+  await writeAudit({ adminId, action: "SEED", detail: "cli-seed" });
   console.log("Seed OK", sync.mode, sync.upserted, sync.detail);
-  console.log("Login: admin@suiteasd.platform / AdminSuiteASD2026!");
+  console.log(`Admin email: ${email}`);
+  console.log(`Admin password: ${password}`);
 }
 
 main().catch((error) => {

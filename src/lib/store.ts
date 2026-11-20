@@ -64,6 +64,13 @@ export function mapSociety(row: SocietyRow) {
   };
 }
 
+export async function countAdmins() {
+  const rows = await sql<{ count: number }>(
+    `select count(*)::int as count from platform_admin`,
+  );
+  return Number(rows[0]?.count ?? 0);
+}
+
 export async function findAdminByEmail(email: string) {
   const rows = await sql<AdminRow>(
     `select id, email, password_hash, name from platform_admin where email = $1 limit 1`,

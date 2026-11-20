@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/auth";
+import { assertSameOrigin } from "@/lib/csrf";
 import { FIELD_GROUPS } from "@/lib/fields";
 import { getSociety, upsertFieldAccess, writeAudit } from "@/lib/store";
 
@@ -13,6 +14,9 @@ const schema = z.object({
 type Params = { params: Promise<{ id: string }> };
 
 export async function PUT(request: Request, { params }: Params) {
+  const csrf = assertSameOrigin(request);
+  if (csrf) return csrf;
+
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Non autenticato" }, { status: 401 });
   const { id } = await params;

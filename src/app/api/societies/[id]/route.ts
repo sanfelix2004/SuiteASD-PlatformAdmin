@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/auth";
+import { assertSameOrigin } from "@/lib/csrf";
 import { deleteSociety, getSociety, updateSociety, writeAudit } from "@/lib/store";
 
 const patchSchema = z
@@ -34,6 +35,9 @@ export async function GET(_request: Request, { params }: Params) {
 }
 
 export async function PATCH(request: Request, { params }: Params) {
+  const csrf = assertSameOrigin(request);
+  if (csrf) return csrf;
+
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Non autenticato" }, { status: 401 });
   const { id } = await params;
@@ -51,7 +55,10 @@ export async function PATCH(request: Request, { params }: Params) {
   return NextResponse.json(updated?.society);
 }
 
-export async function DELETE(_request: Request, { params }: Params) {
+export async function DELETE(request: Request, { params }: Params) {
+  const csrf = assertSameOrigin(request);
+  if (csrf) return csrf;
+
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Non autenticato" }, { status: 401 });
   const { id } = await params;

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getSession } from "@/lib/auth";
 import { FIELD_GROUPS } from "@/lib/fields";
 import { listPolicies, updatePolicy, writeAudit } from "@/lib/store";
+import { assertSameOrigin } from "@/lib/csrf";
 
 export async function GET() {
   const session = await getSession();
@@ -28,6 +29,9 @@ const patchSchema = z.object({
 });
 
 export async function PATCH(request: Request) {
+  const csrf = assertSameOrigin(request);
+  if (csrf) return csrf;
+
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Non autenticato" }, { status: 401 });
   const parsed = patchSchema.safeParse(await request.json());

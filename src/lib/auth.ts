@@ -6,10 +6,10 @@ import { findAdminById } from "./store";
 const COOKIE = "spa_session";
 
 function secret() {
-  const value =
-    process.env.AUTH_SECRET?.trim() ||
-    // Sample fallback when the published secret is not set yet.
-    "suiteasd-platform-admin-sample-fallback-secret";
+  const value = process.env.AUTH_SECRET?.trim() ?? "";
+  if (value.length < 32) {
+    throw new Error("AUTH_SECRET must be set to at least 32 characters");
+  }
   return new TextEncoder().encode(value);
 }
 

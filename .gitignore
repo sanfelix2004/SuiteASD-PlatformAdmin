@@ -50,3 +50,4 @@ prisma/dev.db-journal
 
 data/suiteasd-source.db
 data/*.db
+platform-admin

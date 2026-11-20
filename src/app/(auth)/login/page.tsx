@@ -1,14 +1,34 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("admin@suiteasd.platform");
-  const [password, setPassword] = useState("AdminSuiteASD2026!");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [setupHint, setSetupHint] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/setup-status")
+      .then(async (response) => {
+        if (!response.ok) return;
+        const data = (await response.json()) as {
+          configured: boolean;
+          authSecretReady: boolean;
+        };
+        if (!data.authSecretReady) {
+          setSetupHint("Manca AUTH_SECRET nei secret dell'app (almeno 32 caratteri).");
+        } else if (!data.configured) {
+          setSetupHint(
+            "Nessun operatore ancora. Imposta PLATFORM_BOOTSTRAP_PASSWORD nei secret, poi ricarica.",
+          );
+        }
+      })
+      .catch(() => undefined);
+  }, []);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -46,6 +66,7 @@ export default function LoginPage() {
           <input
             className="input"
             type="email"
+            autoComplete="username"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -56,11 +77,17 @@ export default function LoginPage() {
           <input
             className="input"
             type="password"
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
         </label>
+        {setupHint ? (
+          <p className="rounded-xl bg-[#fff4e8] px-3 py-2 text-sm text-[var(--warn)]">
+            {setupHint}
+          </p>
+        ) : null}
         {error ? (
           <p className="rounded-xl bg-[#fdeceb] px-3 py-2 text-sm text-[var(--danger)]">
             {error}
